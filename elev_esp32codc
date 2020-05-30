@@ -1,0 +1,461 @@
+//****************************************************************************************
+//        SISTEMA CRIADO PARA USADO PIC 18F452
+//
+//        DATA: 29/03/2017
+//
+//
+
+
+#define on 1
+#define off 0
+
+#define EMERG   portd.b4
+#define BMB     portd.b5
+#define LED_START_STOP late.b0
+#define LED_EMERG      late.b1
+#define LED_RUNNING    late.b2
+ //******************************DEFINE SAIDAS************************************************
+#define RDS e0.B0
+#define RDD e0.B1
+#define RVA e0.B2
+#define RVB e0.B3
+#define RVC e0.B4
+#define RFR e1.B0
+#define RET e1.B1
+#define RAP e1.B2
+#define RFP e1.B3
+//**********************************DEFINE ENTRADAS***********************************************
+ #define LAS  s0.b0
+ #define LAD  s0.b1
+ #define LMS  s0.b2
+ #define LMD  s0.b3
+ #define PCS  s0.b4
+ #define PCD  s0.b5
+ #define SNV  s0.b6
+ #define SZP  s0.b7
+ #define FTC  s1.b0
+ #define LFP  s1.b1
+ #define LAP  s1.b2
+ #define MAN  s1.b3
+ #define BMS  s1.b4
+ #define BMD  s1.b5
+ #define CAB  s1.b6
+ #define BFP  s1.b7
+ #define BRP  s2.b0
+ #define BPA  s2.b1
+ #define BPO  s2.b2
+ #define MTH  s2.b3
+ #define PCA  s2.b4
+ #define CPT  s2.b5
+ #define PPA  s2.b6
+ #define CFR  s2.b7
+ // ***********************************BOTOES DE CHAMADAS****************************************************************
+// #DEFINE
+//***********************USAR COMO REFERENCIA DE COMANDOS DO ELEVADOR****************************************************
+//************************DEFINE VELOCIDADES e COMANDOS DO CARRO*********************************************************
+
+#define vel_zero   RVA=off,  RVB=off,  RVC=off
+#define vel_alta   RVA=on,   RVB=on,   RVC=on
+#define vel_media  RVA=off,  RVB=on,   RVC=on
+#define vel_baixa  RVA=off,  RVB=off,  RVC=on
+#define vel_corr   RVA=off,  RVB=on,   RVC=off
+
+#define parar RDD=off,RDS=off
+#define subir RDD=on,RDS=off
+#define descer RDD=off,RDS=on
+//************************DEFINE COMANDOS DE PORTAS**********************************************************************
+#define cmd_opendoor RAP=on,RFP=off
+#define cmd_closedoor RAP=off,RFP=on
+#define cmd_stopdoor RAP=off,RFP=off
+
+
+char i = 1;
+char j, Iflag;
+int pos16=0;
+int chamada16=0;
+char ons=0,l=0;
+char e0=0,e1=0,e2=0;
+char s0=0,s1=0,s2=0;
+unsigned char bxlp = 0;      // botoes de 1 a 8  pavimento
+unsigned char bxhp = 0;      // botoes de 9 a 16 pavimento
+unsigned char lxlp = 0;      // leds   de 1 a 9  pavimento
+unsigned char lxhp = 0;      // leds   de 9 a 16 pavimento
+
+unsigned char bxlc = 0;      // botao  de 1 a 8   cabine
+unsigned char bxhc = 0;      // botao  de 9 a  16 cabine
+unsigned char lxlc = 0;      // leds   de 1 a 8   cabine
+unsigned char lxhc = 0;      // leds   de 9 a  16 cabina
+unsigned char posicao1 = 0;
+unsigned char posicao2 = 0;
+
+unsigned int bxp = 0;        // botoes de 1 a 16 pavimento
+unsigned int lxp = 0;        // lets   de 1 a 16 pavimento
+unsigned int bxc = 0;        // botoes de 1 a 16 cabine
+unsigned int lxc = 0;        // leds   de 1 a 16 cabine
+
+long cont=0;
+void interrupt()
+{
+   switch (i)
+     {
+//*************** 1 GRUPO ******************************
+          case 0:
+             {
+              delay_us(50);
+              TRISB = 255;            // muda portb para entradas
+              LATA = (0 & 7);        // seta varredura para entrada input_0
+              delay_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              delay_us(50);
+              e0 = portb;            // atualiza dados de entrada e0
+              delay_us(50);
+              LATA.B5 = 0;          // desliga pulso de disparo de atualizacao
+              DELAY_us(50);
+              
+      //******************  LOGICA DOS BOTOES CHAMADAS *****************************
+              LATC.B0 = 1;          // liga varredura de botoes CHAMADAS
+              DELAY_us(50);
+              LATA = (3 & 7);        // seta varredura para entrada  input_3
+              DELAY_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              bxlp = portb;          // atualiza botoes de 1 a 8 pavimento
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              i++;
+              }
+          break;
+          case 1:
+              {
+              delay_us(50);
+              TRISB = 0;
+              delay_us(50);
+              LATA = (4 & 7);       //  seta varredura para output_0
+              delay_us(50);
+              LATA.B5 = 1;         //  liga pulso de disparo
+              delay_us(50);
+              LATB = S0;           //  atualiza dados s0
+              DELAY_us(50);
+              LATA.B5 = 0;         // desliga pulso de disparo de atualizacoes
+              DELAY_ms(2);
+              
+       //******************  LOGICA DOS LEDS CHAMADAS *****************************
+              LATA = (7 & 7);       //  seta varredura para output_3
+              delay_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              lxlp = portb;          // atualiza leds de pavimente 1 a 8.
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              LATC.B0 = 0;          // desliga varredura de botoes CHAMADAS
+              delay_us(50);
+              i++;
+              }
+
+          break;
+//*************** 2 GRUPO **********************************
+          
+          case 2:
+             {
+              delay_us(50);
+              TRISB = 255;            // muda portb para entradas
+              LATA = (1 & 7);        // seta varredura para entrada input_1
+              delay_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              delay_us(50);
+              e1 = portb;            // atualiza dados de entrada e1
+              delay_us(50);
+              LATA.B5 = 0;          // desliga pulso de disparo de atualizacao
+              DELAY_us(50);
+
+      //******************  LOGICA DOS BOTOES CHAMADAS *****************************
+              LATC.B1 = 1;          // liga varredura de botoes CHAMADAS
+              DELAY_us(50);
+              LATA = (3 & 7);        // seta varredura para entrada  input_3
+              DELAY_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              bxhp = portb;          // atualiza botoes de 9 a 16 pavimento
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              i++;
+              }
+          break;
+          case 3:
+              {
+              delay_us(50);
+              TRISB = 0;
+              delay_us(50);
+              LATA = (5 & 7);       //  seta varredura para output_1
+              delay_us(50);
+              LATA.B5 = 1;         //  liga pulso de disparo
+              delay_us(50);
+              LATB = S1;           //  atualiza dados s1
+              DELAY_us(50);
+              LATA.B5 = 0;         // desliga pulso de disparo de atualizacoes
+              DELAY_ms(2);
+
+       //******************  LOGICA DOS LEDS CHAMADAS *****************************
+              LATA = (7 & 7);       //  seta varredura para output_3
+              delay_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              lxhp = portb;          // atualiza leds de pavimente 9 a 16.
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              LATC.B1 = 0;          // desliga varredura de botoes CHAMADAS
+              delay_us(50);
+              i++;
+              }
+
+          break;
+//********************** 3 GRUPO *********************************
+           
+           case 4:
+             {
+              delay_us(50);
+              TRISB = 255;            // muda portb para entradas
+              LATA = (2 & 7);        // seta varredura para entrada input_2
+              delay_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              delay_us(50);
+              e2 = portb;            // atualiza dados de entrada e1
+              delay_us(50);
+              LATA.B5 = 0;          // desliga pulso de disparo de atualizacao
+              DELAY_us(50);
+
+      //******************  LOGICA DOS BOTOES CHAMADAS *****************************
+              LATC.B2 = 1;          // liga varredura de botoes CHAMADAS
+              DELAY_us(50);
+              LATA = (3 & 7);        // seta varredura para entrada  input_3
+              DELAY_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              bxlc = portb;          // atualiza botoes de 1 a 8 cabine
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              i++;
+              }
+          break;
+          case 5:
+              {
+               delay_us(50);
+              TRISB = 0;
+              delay_us(50);
+              LATA = (6 & 7);       //  seta varredura para output_1
+              delay_us(50);
+              LATA.B5 = 1;         //  liga pulso de disparo
+              delay_us(50);
+              LATB = S2;           //  atualiza dados s2
+              DELAY_us(50);
+              LATA.B5 = 0;         // desliga pulso de disparo de atualizacoes
+              DELAY_ms(2);
+
+       //******************  LOGICA DOS LEDS CHAMADAS *****************************
+              LATA = (7 & 7);       //  seta varredura para output_3
+              delay_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              lxlc = portb;          // atualiza leds de cabina 1 a  8.
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              LATC.B2 = 0;          // desliga varredura de botoes CHAMADAS
+              delay_us(50);
+              i++;
+              }
+
+          break;
+//********************** 4 GRUPO ***************************************
+
+           case 6:
+             {
+              delay_us(250);
+              
+              //******************  LOGICA DOS BOTOES CHAMADAS *****************************
+              LATC.B3 = 1;          // liga varredura de botoes CHAMADAS
+              DELAY_us(50);
+              LATA = (3 & 7);        // seta varredura para entrada  input_3
+              DELAY_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              bxhc = portb;          // atualiza botoes de 9 a 16 cabine
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              i++;
+              }
+          break;
+          case 7:
+              {
+               DELAY_ms(2);
+              //******************  LOGICA DOS LEDS CHAMADAS *****************************
+              LATA = (7 & 7);       //  seta varredura para output_3
+              delay_us(50);
+              LATA.B5 = 1;           // liga pulso de disparo
+              DELAY_us(50);
+              lxhc = portb;          // atualiza leds de cabina 9 a  16.
+              DELAY_us(50);
+              LATA.B5 = 0;           // desliga pulso de disparo
+              delay_us(50);
+              LATC.B3 = 0;          // desliga varredura de botoes CHAMADAS
+              DELAY_us(50);
+              i = 0;
+              }
+
+          break;
+      }
+
+         TMR0H = 0xFD;  //61630    F0
+         TMR0L = 0xFF;
+         TMR0IF_bit = 0;
+
+
+
+}
+void main()
+{
+
+     T0CON = 0x01;                 //16-bit, prescale 1:4
+     TMR0IF_bit = 0;
+     TMR0IE_bit = 1;
+     TMR0H = 0xFD;                //
+     TMR0L = 0x00;
+     TMR0ON_bit = 1;
+     ADCON1  = 0x0F;             //All for digital operation it says
+     INTCON2.B7 = 0x00;         //ENABLE PULLUP FOR PORTB
+
+
+
+
+
+PIE1.RCIE = 1;                  //enable interrupts.
+//INTCON.PEIE = 1;               //on byte received.
+INTCON.GIE = 1;
+
+
+
+
+  TRISA               =  0b00011000 ;     //binario varreduras < 0 1 2 >  <emerg , bomb , sel>
+  TRISB               =  255;             //ENTRADAS E SAIDA VARRIDAS
+  TRISC               =  0X11100000;     //BCD para 138 , serial
+  TRISD               =  0x11110000;             // ENTR < 0 1 2 3>  SAIDA < 4 5 6 7 >
+  TRISE               =  0;             //SAIDAS   led RUN , SEG_FALT , START.
+
+
+  PORTA               =  0;               //Limpa    porta
+  PORTB               =  0;               //limpa    portb
+  PORTC               =  0;               //limpa    portc
+  PORTD               =  0;               //limpa    portc
+  PORTE               =  0;               //LIMPA    PORTE
+
+   asm {
+    //   BCF STATUS,RP1
+    //   BSF STATUS,RP0
+    //   MOVF _tictac,
+    //.....block of assembly instructions
+       }
+    lxp = 1;
+    lxc = 1;
+
+while (1){
+
+          bxp = bxlp << 8 | bxhp;    //
+          bxc = bxlc << 8 | bxhc;    //
+          lxp = lxlp << 8 | lxhp;    //
+          lxc = lxlc << 8 | lxhc;    //
+          if (EMERG & BMB)
+             {               //  ************* EMERGENCIA NAO ACIONADA CONDI\C7AO FUNCIONAMENTO NORMAL*********************************
+              //LED_EMERG = 0;                 // DESLIGA O LED DE EMERGENCIA NA PLACA CORE485
+                 if (MAN)
+                    {        // *********************** CONDI\C7\C3O AUTOMATICA********************************************************
+                   
+                   
+                   
+                   
+                    }
+                  else
+                    {       // ************************* CONDI\C7\C3O MANUAL**************************************************************
+                    lxp = 0;                 //   DESLIGA LEDS DE CHAMADA PAVIMENTO
+                    lxc = 0;                //    DESLIGA LEDS DE CHAMADA CABINE
+                    if (!BMS & !BMD)
+                         {
+                         parar;                   //   PARA O ELEVADOR
+                         vel_zero;                //   DESLIGA RELES DE VELOCIDADE
+                         }
+                    if(BMS)
+                         {                        //   COMANDA O ELEVADOR SUBIR EM MANUAL
+                         subir;                   //    VELOCIDADE BAIXA
+                         vel_baixa;
+                         }
+                    if(BMD)
+                         {
+                         descer;                  //    COMANDA O ELEVADOR DESCER EM MANUAL
+                         vel_baixa;               //    VELOCIDADE BAIXA
+                         
+                         }
+                    
+                    
+                    }
+            
+             }
+          else
+             {          //   ***************** EMERGENCIA ACIONADA --- ELEVADOR PARADO PARA PROGAMA\C7AO ********************************
+             //LED_EMERG = 1;             //   LIGA LED DE EMERGENCIA NA PLACA CORE485
+             parar;                   //   PARA O ELEVADOR
+             vel_zero;                //   DESLIGA RELES DE VELOCIDADE
+             lxp = 0;                 //   DESLIGA LEDS DE CHAMADA PAVIMENTO
+             lxc = 0;                //    DESLIGA LEDS DE CHAMADA CABINE
+             }
+
+            S2 = 0XAA;
+            DELAY_MS(300);
+            S2 = 0X55;
+            DELAY_MS(300);
+
+
+
+          
+                                     //************** situacao inicial do elevador********************
+  /*
+           delay_ms(300);
+           late.b0 = !late.b0;
+           late.b1 = late.b0;
+           late.b2 = late.b0;
+  
+ LAS = 0;
+ LAD = 1;
+ LMS = 0;
+ LMD = 1;
+ PCS = 0;
+ PCD = 0;
+ SNV = 1;
+ SZP = 1;
+ FTC = 1;
+ LFP = 1;
+ LAP = 0;
+ MAN = 1;
+ BMS = 0;
+ BMD = 0;
+ CAB = 0;
+ BRP = 1;
+ BPA = 0;
+ BPO = 0;
+ MTH = 0;
+ EMER = 1;
+ PCA = 1;
+ CPT = 1;
+ PPA = 1;
+ CFR = 1;
+
+    */
+
+
+          }
+
+ }
