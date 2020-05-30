@@ -98,7 +98,10 @@ unsigned int bxc = 0;        // botoes de 1 a 16 cabine
 unsigned int lxc = 0;        // leds   de 1 a 16 cabine
 
 long cont=0;
-void interrupt()             // ALTERAR
+
+
+// modificacao
+void setup()             // ALTERAR
 {
    switch (i)
      {
@@ -315,64 +318,16 @@ void interrupt()             // ALTERAR
           break;
       }
 
-         TMR0H = 0xFD;  //61630    F0
-         TMR0L = 0xFF;
-         TMR0IF_bit = 0;
-
-
-
+ 
 }
-void main()
+void loop()
 {
 
-     T0CON = 0x01;                 //16-bit, prescale 1:4
-     TMR0IF_bit = 0;
-     TMR0IE_bit = 1;
-     TMR0H = 0xFD;                //
-     TMR0L = 0x00;
-     TMR0ON_bit = 1;
-     ADCON1  = 0x0F;             //All for digital operation it says
-     INTCON2.B7 = 0x00;         //ENABLE PULLUP FOR PORTB
+    
 
 
 
-
-
-PIE1.RCIE = 1;                  //enable interrupts.
-//INTCON.PEIE = 1;               //on byte received.
-INTCON.GIE = 1;
-
-
-
-
-  TRISA               =  0b00011000 ;     //binario varreduras < 0 1 2 >  <emerg , bomb , sel>
-  TRISB               =  255;             //ENTRADAS E SAIDA VARRIDAS
-  TRISC               =  0X11100000;     //BCD para 138 , serial
-  TRISD               =  0x11110000;             // ENTR < 0 1 2 3>  SAIDA < 4 5 6 7 >
-  TRISE               =  0;             //SAIDAS   led RUN , SEG_FALT , START.
-
-
-  PORTA               =  0;               //Limpa    porta
-  PORTB               =  0;               //limpa    portb
-  PORTC               =  0;               //limpa    portc
-  PORTD               =  0;               //limpa    portc
-  PORTE               =  0;               //LIMPA    PORTE
-
-   asm {
-    //   BCF STATUS,RP1
-    //   BSF STATUS,RP0
-    //   MOVF _tictac,
-    //.....block of assembly instructions
-       }
-    lxp = 1;
-    lxc = 1;
-
-while (1){
-
-          bxp = bxlp << 8 | bxhp;    //
-          bxc = bxlc << 8 | bxhc;    //
-          lxp = lxlp << 8 | lxhp;    //
-          lxc = lxlc << 8 | lxhc;    //
+          
           if (EMERG & BMB)
              {               //  ************* EMERGENCIA NAO ACIONADA CONDI\C7AO FUNCIONAMENTO NORMAL*********************************
               //LED_EMERG = 0;                 // DESLIGA O LED DE EMERGENCIA NA PLACA CORE485
@@ -460,6 +415,6 @@ while (1){
     */
 
 
-          }
+          
 
  }
