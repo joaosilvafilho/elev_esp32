@@ -3,6 +3,10 @@
 //
 //        DATA: 29/03/2017
 //
+//        SISTEMA ATUALIZADO PARA ESP32    
+//        
+//        DATA 30 DE MAI 2020 
+//
 //
 
 
@@ -94,7 +98,7 @@ unsigned int bxc = 0;        // botoes de 1 a 16 cabine
 unsigned int lxc = 0;        // leds   de 1 a 16 cabine
 
 long cont=0;
-void interrupt()
+void interrupt()             // ALTERAR
 {
    switch (i)
      {
